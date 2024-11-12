@@ -4,7 +4,8 @@
 # Written/run on - RStudio Desktop
 # Version of R - 4.2.2
 #
-# Description - Reads in new data for the relative poverty indicator.
+# Description - Reads in new data for the relative poverty indicator and 
+# appends to database file.
 # Data source - poverty and income inequality in Scotland.
 # Tables from 2020-23 publication are as follows: 
 # - 1: age breakdowns (and headline estimates)
