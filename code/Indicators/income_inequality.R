@@ -23,11 +23,11 @@ inc_ineq_data_raw <- read_excel("poverty_and_income_inequality_in_scotland_2020_
 
 # 2. Prepare data ----
 
-inc_ineq_data <- income_data_raw %>% 
+inc_ineq_data <- inc_ineq_data_raw %>% 
   
   # Filter for rows after 53a table header and before 53b table header
-  filter(row_number() > which(str_detect(income_data_raw[[1]], "53a")) &
-           row_number() < which(str_detect(income_data_raw[[1]], "53b"))) %>% 
+  filter(row_number() > which(str_detect(inc_ineq_data_raw[[1]], "53a")) &
+           row_number() < which(str_detect(inc_ineq_data_raw[[1]], "53b"))) %>% 
   
   # Use first row of data as column names
   row_to_names(row_number = 1) %>% 
@@ -45,9 +45,6 @@ inc_ineq_data <- income_data_raw %>%
          # Create indicator name variable
          Indicator = "Income inequality",
          
-         # Create outcome variable
-         Outcome = "Economy",
-         
          # Create year label variable
          Yearlab = Year,
          
@@ -59,25 +56,17 @@ inc_ineq_data <- income_data_raw %>%
   filter(Measure == "Before housing costs") %>% 
   
   # Remove measure column
-  select(!Measure)
-
-
-# 3. Prepare final files ----
-
-database <- inc_ineq_data %>% 
+  select(!Measure) %>% 
   
   # Filter relative poverty data for most recent year
-  filter(Year == max(Year)) %>% 
+  filter(Year == max(Year))
   
-  # Append database
-  rbind(database) %>% 
-  
-  # Remove any duplicate rows
-  unique() %>% 
-  
-  # Arrange by indicator name, breakdown and year
-  arrange(Indicator, Disaggregation, Breakdown, Year)
 
+
+# 3. Remove data ----
 
 # Remove data no longer needed from environment
-rm(inc_ineq_data_raw, inc_ineq_data)
+rm(inc_ineq_data_raw)
+
+
+### END OF SCRIPT ###

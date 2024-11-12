@@ -47,8 +47,10 @@ database <- read_table_from_db(server = server,
   select(!c(Rowid, SysStartTime, SysEndTime, NpfdatabaseVersionKey))
 
 
-### 4. Create functions ----
+### 4. Read in lookups ----
 
+# PLACEHOLDER: Indicators mapped to outcomes
+outcome_mapping <- read_excel("Outcome mapping.xlsx")
 
 
 

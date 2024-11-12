@@ -181,43 +181,39 @@ rel_pov_data <- rel_pov_age %>%
   bind_rows(rel_pov_dis, rel_pov_eth, rel_pov_rur, rel_pov_simd, 
             rel_pov_sex, rel_pov_sexor, rel_pov_rel) %>% 
   
-  # Create outcome variable
-  mutate(Outcome = "Poverty",
-         
-         # Times figure by 100 to match database figures
-         Figure = Figure * 100) %>% 
+  # Times figure by 100 to match database figures
+  mutate(Figure = Figure * 100) %>% 
   
   # Remove duplicate total categories
-  filter(Breakdown != "All")
+  filter(Breakdown != "All") %>% 
+  
+  # Filter relative poverty data for most recent year
+  filter(Year == max(Year))
 
 
 ## As a ONE-OFF: save urban/rural data separately to add full time series
 # to database This is because urban/rural is a new breakdown being added.
-rel_pov_rur_full <- rel_pov_data %>% 
-  
+rel_pov_rur_full <- rel_pov_data %>%
+
          filter(Disaggregation == "Urban/Rural")
 
+# Append full urban/rural time series to data
+rel_pov_data <- rbind(rel_pov_data, rel_pov_rur_full) %>% 
+  
+  # Remove duplicate urban/rural rows
+  unique()
 
-# 3. Prepare final files ----
 
-database <- rel_pov_data %>% 
-  
-  # Filter relative poverty data for most recent year
-  filter(Year == max(Year)) %>% 
-  
-  # Append database and full urban/rural timeseries (as a one-off)
-  rbind(database, rel_pov_rur_full) %>% 
-  
-  # Remove any duplicate rows
-  unique() %>% 
-  
-  # Arrange by indicator name, breakdown and year
-  arrange(Indicator, Disaggregation, Breakdown, Year)
 
+# 3. Remove data ----
 
 # Remove data no longer needed from environment
 rm(rel_pov_age_raw, rel_pov_dis_raw, rel_pov_eth_raw,
    rel_pov_rur_raw, rel_pov_simd_raw, rel_pov_sex_raw,
    rel_pov_sexor_raw, rel_pov_rel_raw, rel_pov_age,
    rel_pov_dis, rel_pov_eth, rel_pov_rur, rel_pov_simd, 
-   rel_pov_sex, rel_pov_sexor, rel_pov_rel, table_list)
+   rel_pov_sex, rel_pov_sexor, rel_pov_rel, table_list,
+   rel_pov_rur_full)
+
+
+### END OF SCRIPT ###
