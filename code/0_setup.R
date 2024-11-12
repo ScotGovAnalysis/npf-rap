@@ -10,17 +10,44 @@
 
 
 ### 1. Load packages ----
-
+library(RtoSQLServer)
 library(tidyverse)
 library(janitor)
+library(readxl)
 
 
-### 2. Create folders ----
+### 2. Set folder locations ----
+
+# Downloaded data
+
+# Received data
 
 
+### 3. Read in data from SQL server ----
+
+# Set SQL database connection details
+server <- "s0196a\\ADM"
+database <- "CorporateAnalyticalServicesNationalPerformanceFramework"
+schema <- "nationalindicators"
+
+# Show tables in the SQL server
+show_schema_tables(
+  server = server,
+  database = database,
+  schema = schema,
+  include_views = TRUE)
+
+# Read in existing NPF database file
+database <- read_table_from_db(server = server,
+                               database = database,
+                               schema = schema,
+                               table_name = "Npfdatabase") %>% 
+  
+  # Remove row ID column and additional columns imported from SQL
+  select(!c(Rowid, SysStartTime, SysEndTime, NpfdatabaseVersionKey))
 
 
-### 3. Create functions ----
+### 4. Create functions ----
 
 
 
