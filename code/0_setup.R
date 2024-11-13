@@ -51,9 +51,9 @@ outcome_mapping <- read_excel("Outcome mapping.xlsx")
 # 5. Functions ----
 
 # Source function scripts
-source("Functions/wrangling_functions.R")
-source("Functions/chart_functions.R")
-source("Functions/change_criteria_functions.R")
+source("Code/Functions/wrangling_functions.R")
+source("Code/Functions/chart_functions.R")
+source("Code/Functions/change_criteria_functions.R")
 
 
 

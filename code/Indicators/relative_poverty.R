@@ -128,7 +128,7 @@ rel_pov_eth <- rel_pov_func(data = rel_pov_eth_raw, sheet = "12",
 
 # Apply function to wrangle data
 rel_pov_rur <- rel_pov_func(data = rel_pov_rur_raw, sheet = "15",
-                            disaggregation = "Urban/Rural")
+                            disagg = "Urban/Rural")
 
 
 ## SIMD ----

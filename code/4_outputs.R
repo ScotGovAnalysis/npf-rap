@@ -18,10 +18,10 @@
 updated_database <- database %>% 
   
   # Add row ID
-  mutate(rowid = seq(1:nrow(new_data)))
+  mutate(rowid = seq(1:nrow(database)))
 
 # Capitalise column names
-colnames(database) <- str_to_title(colnames(database))
+colnames(updated_database) <- str_to_title(colnames(updated_database))
 
 
 # 2. Prepare NPF website arrow direction file ----

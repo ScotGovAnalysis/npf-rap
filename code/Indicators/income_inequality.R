@@ -102,7 +102,7 @@ create_indicator_charts(data = inc_ineq_data_clean,
 # 6. Remove data ----
 
 # Remove data no longer needed from environment
-rm(inc_ineq_data_raw, inc_ineq_change)
+rm(inc_ineq_data_raw, inc_ineq_data_clean)
 
 
 ### END OF SCRIPT ###
