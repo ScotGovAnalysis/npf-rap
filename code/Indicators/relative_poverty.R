@@ -46,10 +46,11 @@ names(table_list) <- c("rel_pov_age_raw", "rel_pov_dis_raw", "rel_pov_eth_raw",
 list2env(table_list, .GlobalEnv)
 
 
+
 # 2. Prepare data ----
 
 # Create function to wrangle relative poverty data
-rel_pov_func <- function(data, sheet){
+rel_pov_func <- function(data, sheet, disagg){
   
   data <- data %>% 
     
@@ -61,19 +62,22 @@ rel_pov_func <- function(data, sheet){
     row_to_names(row_number = 1) %>% 
     
     # Pivot data to long format
-    pivot_longer(!Group, names_to = "Year", values_to = "Figure") %>% 
+    pivot_longer(!Group, names_to = "year", values_to = "figure") %>% 
     
     # Transform estimate to numeric format and round to 2 dp
-    mutate(Figure = round(as.numeric(Figure), digits = 2),
+    mutate(figure = round(as.numeric(figure), digits = 2),
            
            # Create indicator name column
-           Indicator = "Relative poverty",
+           indicator = "Relative poverty",
            
-           # Create new year label variable
-           Yearlab = Year) %>% 
+           # Convert year variable from character to factor
+           year = as.factor(year),
+           
+           # Create new disaggregation variable
+           disaggregation = disagg) %>% 
     
     # Rename group variable
-    rename(Breakdown = Group)
+    rename(breakdown = Group)
   
 }
 
@@ -81,131 +85,159 @@ rel_pov_func <- function(data, sheet){
 ## Headline and age ----
 
 # Apply function to wrangle data
-rel_pov_age <- rel_pov_func(data = rel_pov_age_raw, sheet = "1") %>% 
+rel_pov_age <- rel_pov_func(data = rel_pov_age_raw, sheet = "1",
+                            disagg = "Age") %>% 
   
-  # Create new disaggregation variable
-  mutate(Disaggregation = case_when(Breakdown == "All people" ~ "Total",
-                                    Breakdown != "All people" ~ "Age"),
+  # Rename disaggregation for total
+  mutate(disaggregation = case_when(str_detect(breakdown, "All people") ~ "Total",
+                                    .default = disaggregation),
          
          # Rename total breakdown category
-         Breakdown = str_replace_all(Breakdown, "All people", "Total"))
+         breakdown = str_replace_all(breakdown, "All people", "Total"))
 
 
 ## Disability ----
 
 # Apply function to wrangle data
-rel_pov_dis <- rel_pov_func(data = rel_pov_dis_raw, sheet = "10") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Disability of household member(s)") %>% 
+rel_pov_dis <- rel_pov_func(data = rel_pov_dis_raw, sheet = "10",
+                            disagg = "Disability of household member(s)") %>%
   
   # Filter for two groups of interest:
   # - In household with no disabled person(s)
   # - In household with disabled person(s)
-  filter(grepl("person", Breakdown)) %>% 
+  filter(grepl("person", breakdown)) %>% 
   
   # Rename breakdowns
   # fixed() tells stringr to treat the patterns as literal strings which
   # bypasses issues with parentheses
-  mutate(Breakdown = str_replace_all(Breakdown,
-                                     fixed("In household with no disabled person(s)"),
-                                     "No one disabled"),
-         Breakdown = str_replace_all(Breakdown,
-                                     fixed("In household with disabled person(s)"),
-                                     "Someone disabled"))
+  mutate(breakdown = str_replace_all(breakdown,
+                              fixed("In household with no disabled person(s)"),
+                              "No one disabled"),
+         breakdown = str_replace_all(breakdown,
+                              fixed("In household with disabled person(s)"),
+                              "Someone disabled"))
 
 ## Ethnicity ----
 
 # Apply function to wrangle data
-rel_pov_eth <- rel_pov_func(data = rel_pov_eth_raw, sheet = "12") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Ethnicity") 
+rel_pov_eth <- rel_pov_func(data = rel_pov_eth_raw, sheet = "12",
+                            disagg = "Ethnicity")
 
 
 ## Urban/rural ----
 
 # Apply function to wrangle data
-rel_pov_rur <- rel_pov_func(data = rel_pov_rur_raw, sheet = "15") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Urban/Rural") 
+rel_pov_rur <- rel_pov_func(data = rel_pov_rur_raw, sheet = "15",
+                            disaggregation = "Urban/Rural")
 
 
 ## SIMD ----
 
 # Apply function to wrangle data
-rel_pov_simd <- rel_pov_func(data = rel_pov_simd_raw, sheet = "16") %>%
+rel_pov_simd <- rel_pov_func(data = rel_pov_simd_raw, sheet = "16",
+                             disagg = "SIMD decile") %>%
   
-  # Create new disaggregation variable
-  mutate(Disaggregation = "SIMD decile",
+  # Rename breakdowns
+  mutate(breakdown = str_replace_all(breakdown, c("1 - Most deprived" = "1",
+                                                  "10 - Least deprived" = "10")),
          
-         # Rename breakdowns
-         Breakdown = str_replace_all(Breakdown, c("1 - Most deprived" = "1",
-                                                  "10 - Least deprived" = "10")))
+         # Set levels of factor so deciles are in order
+         breakdown = factor(breakdown, levels = c("All", "1", "2", "3",
+                                                  "4", "5", "6", "7",
+                                                  "8", "9", "10")))
 
 ## Gender ----
 
 # Apply function to wrangle data
-rel_pov_sex <- rel_pov_func(data = rel_pov_sex_raw, sheet = "34") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Gender") 
+rel_pov_sex <- rel_pov_func(data = rel_pov_sex_raw, sheet = "34",
+                            disagg = "Gender")
 
 
 ## Sexual orientation ----
 
 # Apply function to wrangle data
-rel_pov_sexor <- rel_pov_func(data = rel_pov_sexor_raw, sheet = "36") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Sexual orientation") %>% 
+rel_pov_sexor <- rel_pov_func(data = rel_pov_sexor_raw, sheet = "36",
+                              disagg = "Sexual orientation") %>% 
   
   # Remove rows where sexual orientation is missing
-  filter(Breakdown != "(Missing)")
+  filter(breakdown != "(Missing)")
 
 
 ## Religion ----
 
 # Apply function to wrangle data
-rel_pov_rel <- rel_pov_func(data = rel_pov_rel_raw, sheet = "38") %>%
-  
-  # Create new disaggregation variable
-  mutate(Disaggregation = "Religion") 
+rel_pov_rel <- rel_pov_func(data = rel_pov_rel_raw, sheet = "38",
+                            disagg = "Religion")
 
 
 ## Combine data ----
-rel_pov_data <- rel_pov_age %>% 
+rel_pov_data_combined <- rel_pov_age %>% 
   
   # Join dataframes
   bind_rows(rel_pov_dis, rel_pov_eth, rel_pov_rur, rel_pov_simd, 
             rel_pov_sex, rel_pov_sexor, rel_pov_rel) %>% 
   
   # Times figure by 100 to match database figures
-  mutate(Figure = Figure * 100) %>% 
+  mutate(figure = figure * 100) %>% 
   
   # Remove duplicate total categories
-  filter(Breakdown != "All") %>% 
+  filter(breakdown != "All")
+
+
+
+# 3. Prepare final data ----
+
+# Filter data for most recent year
+rel_pov_data_recent <- rel_pov_data_combined %>% 
   
-  # Filter relative poverty data for most recent year
-  filter(Year == max(Year))
+  # Apply function to create new single end year variable from year range
+  single_year() %>% 
+
+  # Filter for max year
+  filter(end_year == max(end_year)) %>% 
+  
+  # Remove end_year variable 
+  select(!end_year)
 
 
 ## As a ONE-OFF: save urban/rural data separately to add full time series
 # to database This is because urban/rural is a new breakdown being added.
-rel_pov_rur_full <- rel_pov_data %>%
+rel_pov_rur_full <- rel_pov_data_combined %>%
+  filter(disaggregation == "Urban/Rural")
 
-         filter(Disaggregation == "Urban/Rural")
-
-# Append full urban/rural time series to data
-rel_pov_data <- rbind(rel_pov_data, rel_pov_rur_full) %>% 
+# Append full urban/rural time series to recent data
+rel_pov_data <- rbind(rel_pov_data_recent, rel_pov_rur_full) %>% 
   
   # Remove duplicate urban/rural rows
   unique()
 
 
 
-# 3. Remove data ----
+# 4. Criteria for change ----
+
+## Relative poverty criteria for change:
+# - Performance is improving if the indicator decreases for three periods 
+#   in a row by at least 1 percentage point each period.
+# - Performance is worsening if the indicator increases for three periods 
+#   in a row by at least 1 percentage point each period.
+# - Otherwise, performance is maintaining.
+
+
+# Apply the one point change, three periods in a row function to the change 
+# column and save result
+rel_pov_perf <- three_1pp_changes(data = rel_pov_data_combined)
+
+
+
+# 5. Create QA files ----
+
+# Create chart of time series for QA
+create_indicator_charts(data = rel_pov_data_combined, 
+                        indicator = "Relative poverty")
+
+
+
+# 6. Remove data ----
 
 # Remove data no longer needed from environment
 rm(rel_pov_age_raw, rel_pov_dis_raw, rel_pov_eth_raw,
@@ -213,7 +245,8 @@ rm(rel_pov_age_raw, rel_pov_dis_raw, rel_pov_eth_raw,
    rel_pov_sexor_raw, rel_pov_rel_raw, rel_pov_age,
    rel_pov_dis, rel_pov_eth, rel_pov_rur, rel_pov_simd, 
    rel_pov_sex, rel_pov_sexor, rel_pov_rel, table_list,
-   rel_pov_rur_full)
+   rel_pov_rur_full, rel_pov_change, rel_pov_data_recent,
+   rel_pov_data_combined)
 
 
 ### END OF SCRIPT ###
