@@ -9,48 +9,59 @@
 ##########################################################################
 
 
-### 1. Load packages ----
+# 1. Load packages ----
 library(RtoSQLServer)
 library(tidyverse)
 library(janitor)
 library(readxl)
 
 
-### 2. Set folder locations ----
+
+# 2. Set folder locations ----
 
 # Downloaded data
 
 # Received data
 
 
-### 3. Read in data from SQL server ----
+
+# 3. SQL connection ----
 
 # Set SQL database connection details
-server <- "s0196a\\ADM"
-database <- "CorporateAnalyticalServicesNationalPerformanceFramework"
-schema <- "nationalindicators"
+npf_server <- "s0196a\\ADM"
+npf_database <- "CorporateAnalyticalServicesNationalPerformanceFramework"
+npf_schema <- "nationalindicators"
 
 # Show tables in the SQL server
-show_schema_tables(
-  server = server,
-  database = database,
-  schema = schema,
-  include_views = TRUE)
-
-# Read in existing NPF database file
-database <- read_table_from_db(server = server,
-                               database = database,
-                               schema = schema,
-                               table_name = "Npfdatabase") %>% 
-  
-  # Remove row ID column and additional columns imported from SQL
-  select(!c(Rowid, SysStartTime, SysEndTime, NpfdatabaseVersionKey))
+# show_schema_tables(
+#   server = npf_server,
+#   database = npf_database,
+#   schema = npf_schema,
+#   include_views = TRUE)
 
 
-### 4. Read in lookups ----
+
+# 4. Read in lookups ----
 
 # PLACEHOLDER: Indicators mapped to outcomes
 outcome_mapping <- read_excel("Outcome mapping.xlsx")
+
+
+
+# 5. Functions ----
+
+# Source function scripts
+source("Functions/wrangling_functions.R")
+source("Functions/chart_functions.R")
+source("Functions/change_criteria_functions.R")
+
+
+
+# 6. Chart theme ----
+
+# Define chart colours (extended from sgplot package)
+chart_colours <- c("#002d54", "#2b9c93", "#6a2063", "#e5682a", "#0b4c0b", 
+                   "#a80860", "#0065bd", "#5d9f3c", "#592c20", "#ca72a2")
 
 
 

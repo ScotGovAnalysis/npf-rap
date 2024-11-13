@@ -6,17 +6,21 @@
 #
 # Description - Combines all new data (received from lead analysts and scraped
 # from publications), prepares new data and then appends to database file.
+# No manual changes are required to this script before the process is run.
 ##########################################################################
 
 
-## 1. Combine all data  ----
+# 1. Combine all data  ----
 
 # Combine scraped data
 new_data <- rbind(rel_pov_data,      # relative poverty
                   inc_ineq_data) %>% # income inequality
   
   # Create outcome variable
-  left_join(outcome_mapping, by = "Indicator") %>%
+  left_join(outcome_mapping, by = "indicator") %>%
+  
+  # Create yearlab variable
+  mutate(yearlab = year) %>% 
   
   # Append database file
   rbind(database) %>% 
@@ -25,26 +29,19 @@ new_data <- rbind(rel_pov_data,      # relative poverty
   unique() %>% 
   
   # Arrange by indicator, disaggregation, breakdown and year
-  arrange(Indicator, Disaggregation, Breakdown, Year)
-
-
-# Format final database file
-database <- new_data %>% 
+  arrange(indicator, disaggregation, breakdown, year) %>% 
   
   # Reorder columns
-  select(Outcome, Indicator, Disaggregation, Breakdown, Year, Yearlab, Figure) %>% 
-  
-  # Add row ID
-  mutate(Rowid = seq(1:nrow(new_data)))
-  
+  select(outcome, indicator, disaggregation, breakdown, year, yearlab, figure)
 
 
-## 2. Remove data ----
+
+# 2. Remove data ----
 
 # Remove data no longer needed from environment
-rm(new_data,
-   rel_pov_data, 
+rm(rel_pov_data, 
    inc_ineq_data)
+
 
 
 ### END OF SCRIPT ###
